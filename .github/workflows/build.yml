@@ -50,9 +50,11 @@ jobs:
       
       - name: Setting up build user
         run: |
+          addgroup abuild
           adduser -g "" -G abuild -D build 
           echo 'permit persist :abuild' >> /etc/doas.d/doas.conf
           su - build
+          doas apk update
 
       - name: Creating signing keys
         run: abuild-keygen -i -a -n
@@ -62,7 +64,6 @@ jobs:
 
       - name: Enviroment setup
         run: |
-          doas apk update
           mkdir -pv ~/tmp
           mkdir -p ~/img
           export TMPDIR=~/tmp
