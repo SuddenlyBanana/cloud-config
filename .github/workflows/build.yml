@@ -50,7 +50,7 @@ jobs:
       
       - name: Setting up build user
         run: |
-          adduser build -G abuild
+          adduser --disabled-password --gecos "" build -G abuild
           echo permit persist:abuild >> /etc/doas.d/doas.conf
           su - build
 
