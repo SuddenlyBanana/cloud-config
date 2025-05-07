@@ -1,78 +1,82 @@
 variant: fcos
 version: 1.6.0
+storage:
+  disks:
+    - device: /dev/disk/by-id/coreos-boot-disk
+      wipe_table: false
+      partitions:
+        - label: reprovision
+          number: 4
+          size_mib: 2048
+          resize: false
+
+        - label: root
+          number: 5
+          # Allocate at least 8 GiB to the rootfs.
+          size_mib: 8192
+          resize: false
+
+        - label: log
+          number: 6
+          size_mib: 4096
+          resize: false
+
+        - label: srv
+          number: 7
+          size_mib: 0
+          resize: true
+  filesystems:
+    - device: /dev/disk/by-partlabel/reprovision
+      format: ext4
+      path: /var/reprovision
+      with_mount_unit: true
+
+    - device: /dev/disk/by-partlabel/root
+      format: xfs
+      wipe_filesystem: true
+      label: root
+
+    - device: /dev/disk/by-partlabel/log
+      format: xfs
+      path: /var/log
+      with_mount_unit: true
+
+    - device: /dev/disk/by-partlabel/srv
+      format: xfs
+      path: /var/srv
+      with_mount_unit: true
+  directories:
+    - path: /etc/ucore-autorebase
+      mode: 0754
+systemd:
+  units:
+    # Rebasing to Ublue uCore
+    - name: ucore-signed-autorebase.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=uCore autorebase to signed OCI and reboot
+        ConditionPathExists=/etc/ucore-autorebase/unverified
+        ConditionPathExists=!/etc/ucore-autorebase/signed
+        After=network-online.target
+        Wants=network-online.target
+        [Service]
+        Type=oneshot
+        StandardOutput=journal+console
+        ExecStart=/usr/bin/rpm-ostree rebase --bypass-driver ostree-image-signed:docker://ghcr.io/ublue-os/ucore:stable
+        ExecStart=/usr/bin/touch /etc/ucore-autorebase/signed
+        ExecStart=/usr/bin/systemctl disable ucore-signed-autorebase.service
+        ExecStart=/usr/bin/systemctl reboot
+        [Install]
+        WantedBy=multi-user.target
 passwd:
   users:
     - name: core
       ssh_authorized_keys:
         - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICRIhWo+MoCKC9ON917x42Go2kj3HAe15HOq1aRx2MsO niko@bazzite
-systemd:
-  units:
-    # Installing fish as a layered package with rpm-ostree
-    - name: rpm-ostree-install-fish.service
-      enabled: true
-      contents: |
-        [Unit]
-        Description=Layer fish with rpm-ostree
-        Wants=network-online.target
-        After=network-online.target
-        # We run before `zincati.service` to avoid conflicting rpm-ostree
-        # transactions.
-        Before=zincati.service
-        ConditionPathExists=!/var/lib/%N.stamp
 
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        # `--allow-inactive` ensures that rpm-ostree does not return an error
-        # if the package is already installed. This is useful if the package is
-        # added to the root image in a future Fedora CoreOS release as it will
-        # prevent the service from failing.
-        ExecStart=/usr/bin/rpm-ostree install -y --allow-inactive fish
-        ExecStart=/bin/touch /var/lib/%N.stamp
-        ExecStart=/bin/systemctl --no-block reboot
-
-        [Install]
-        WantedBy=multi-user.target
-    # Installing neovim as a layered package with rpm-ostree
-    - name: rpm-ostree-install-neovim.service
-      enabled: true
-      contents: |
-        [Unit]
-        Description=Layer neovim with rpm-ostree
-        Wants=network-online.target
-        After=network-online.target
-        # We run before `zincati.service` to avoid conflicting rpm-ostree
-        # transactions.
-        Before=zincati.service
-        ConditionPathExists=!/var/lib/%N.stamp
-
-        [Service]
-        Type=oneshot
-        RemainAfterExit=yes
-        # `--allow-inactive` ensures that rpm-ostree does not return an error
-        # if the package is already installed. This is useful if the package is
-        # added to the root image in a future Fedora CoreOS release as it will
-        # prevent the service from failing.
-        ExecStart=/usr/bin/rpm-ostree install -y --allow-inactive neovim
-        ExecStart=/bin/touch /var/lib/%N.stamp
-        ExecStart=/bin/systemctl --no-block reboot
-
-        [Install]
-        WantedBy=multi-user.target
-storage:
-  files:
-    # Set neovim as default editor
-    # We use `zz-` as prefix to make sure this is processed last in order to
-    # override any previously set defaults.
-    - path: /etc/profile.d/zz-default-editor.sh
-      overwrite: true
-      contents:
-        inline: |
-          export EDITOR=neovim
-    - path: /etc/profile.d/systemd-pager.sh
-      mode: 0644
-      contents:
-        inline: |
-          # Tell systemd to not use a pager when printing information
-          export SYSTEMD_PAGER=cat
-          
+    - name: reprovision
+      ssh_authorized_keys:
+        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICRIhWo+MoCKC9ON917x42Go2kj3HAe15HOq1aRx2MsO niko@bazzite
+      home_dir: /var/reprovision
+      no_create_home: true

@@ -1,0 +1,106 @@
+name: reprovision-img-build
+run-name: "Build custom reprovison image"
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  actions: write
+  contents: read
+
+env:
+  COREOS_IMAGE_VERSION: 41.20250331.3.0
+
+jobs:
+  build-config:
+    name: Build Ignition config
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Run Butane and build Ignition config
+        run: |
+          podman run --interactive --rm --security-opt label=disable --volume ${PWD}:/pwd --workdir /pwd quay.io/coreos/butane:release \
+           --pretty --strict coreos-config.bu > ucore-ignition.ign
+      
+      - name: Upload Ignition config
+        uses: actions/upload-artifact@v4
+        with:
+          name: ignition-config
+          path: ./ucore-ignition.ign
+          if-no-files-found: error
+  
+  build-alpine-image:
+    needs: build-config
+    name: Build custom alpine image
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:3.21
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Installing prerequsites
+        run: apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi podman
+      
+      - name: Setting up build user
+        run: |
+          adduser build -G abuild
+          echo permit persist:abuild >> /etc/doas.d/doas.conf
+          su - build
+
+      - name: Creating signing keys
+        run: abuild-keygen -i -a
+
+      - name: Cloning aports repository
+        run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git
+
+      - name: Enviroment setup
+        run: |
+          doas apk update
+          mkdir -pv ~/tmp
+          mkdir -p ~/img
+          export TMPDIR=~/tmp
+          export PROFILENAME=reprovision
+          cp ${{ github.workspace }}/mkimg.$PROFILENAME.sh ~/aports/scripts/mkimg.$PROFILENAME.sh
+          cp ${{ github.workspace }}/genapkovl-mkimgoverlay.sh ~/aports/scripts/genapkovl-mkimgoverlay.sh
+          cp ${{ github.workspace }}/bootstrap $TMPDIR/bootstrap
+          chmod +x ~/aports/scripts/mkimg.$PROFILENAME.sh
+          chmod +x ~/aports/scripts/genapkovl-mkimgoverlay.sh
+          chmod +x $TMPDIR/bootstrap
+
+      - name: Download Fedora CoreOS image 
+        run: |
+          curl --output $TMPDIR/coreos-image.qcow2.gz "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${{ env.COREOS_IMAGE_VERSION }}/x86_64/fedora-coreos-${{ env.COREOS_IMAGE_VERSION }}-digitalocean.x86_64.qcow2.gz"
+          curl --output $TMPDIR/coreos-image.qcow2.gz.sig "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${{ env.COREOS_IMAGE_VERSION }}/x86_64/fedora-coreos-${{ env.COREOS_IMAGE_VERSION }}-digitalocean.x86_64.qcow2.gz.sig"
+      
+      - name: Verify Fedora CoreOS image
+        run: |
+          curl -O https://fedoraproject.org/fedora.gpg
+          gpgv --keyring ./fedora.gpg $TMPDIR/coreos-image.qcow2.gz.sig $TMPDIR/coreos-image.qcow2.gz
+          # I would do checksum verification here... if fedora provided the checksums
+          # sha256sum --ignore-missing -c coreos-image.qcow2.gz-CHECKSUM
+
+      - name: Downloading coreos-installer image
+        run: podman save --output $TMPDIR/coreos-installer.tar quay.io/coreos/coreos-installer:release
+
+      - name: Download ignition config
+        uses: actions/artifact-download@v4
+        with:
+          name: ignition-config
+          path: $TMPDIR/ucore-ignition.ign
+
+      - name: Build custom alpine image
+        run: sh aports/scripts/mkimage.sh --tag v3.21 --outdir ~/img --arch x86_64 --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/main/ --profile $PROFILENAME
+          
+      - name: Upload custom alpine image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ignition-config
+          path: ~/img
+          if-no-files-found: error
