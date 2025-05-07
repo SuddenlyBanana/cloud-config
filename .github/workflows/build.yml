@@ -90,7 +90,7 @@ jobs:
         run: podman save --output $TMPDIR/coreos-installer.tar quay.io/coreos/coreos-installer:release
 
       - name: Download ignition config
-        uses: actions/dowwload-artifact@v4
+        uses: actions/download-artifact@v4
         with:
           name: ignition-config
           path: $TMPDIR/ucore-ignition.ign
