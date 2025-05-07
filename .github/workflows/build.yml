@@ -51,7 +51,7 @@ jobs:
       - name: Setting up build user
         run: |
           adduser --disabled-password --gecos "" build -G abuild
-          echo permit persist :abuild >> /etc/doas.d/doas.conf
+          doas echo permit persist :abuild >> /etc/doas.d/doas.conf
           su - build
 
       - name: Creating signing keys
