@@ -55,7 +55,7 @@ jobs:
           su - build
 
       - name: Creating signing keys
-        run: abuild-keygen -i -a -n
+        run: doas abuild-keygen -i -a -n
 
       - name: Cloning aports repository
         run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git
