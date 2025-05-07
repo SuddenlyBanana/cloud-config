@@ -50,9 +50,8 @@ jobs:
       
       - name: Setting up build user
         run: |
-          adduser -g "" -G abuild -D build 
-          addgroup build wheel
-          echo 'permit persist :abuild' >> /etc/doas.d/doas.conf
+          adduser -g "" -G abuild -D build
+          echo 'permit nopass :abuild' >> /etc/doas.d/doas.conf
           su - build
           doas apk update
 
