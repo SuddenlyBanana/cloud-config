@@ -5,15 +5,15 @@ storage:
     - device: /dev/disk/by-id/coreos-boot-disk
       wipe_table: false
       partitions:
-        - label: reprovision
-          number: 4
-          size_mib: 2048
-          resize: false
-
         - label: root
-          number: 5
+          number: 4
           # Allocate at least 8 GiB to the rootfs.
           size_mib: 8192
+          resize: false
+
+        - label: reprovision
+          number: 5
+          size_mib: 2048
           resize: false
 
         - label: log
@@ -26,15 +26,15 @@ storage:
           size_mib: 0
           resize: true
   filesystems:
-    - device: /dev/disk/by-partlabel/reprovision
-      format: ext4
-      path: /var/reprovision
-      with_mount_unit: true
-
     - device: /dev/disk/by-partlabel/root
       format: xfs
       wipe_filesystem: true
       label: root
+
+    - device: /dev/disk/by-partlabel/reprovision
+      format: ext4
+      path: /var/reprovision
+      with_mount_unit: true
 
     - device: /dev/disk/by-partlabel/log
       format: xfs
