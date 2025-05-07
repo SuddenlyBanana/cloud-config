@@ -51,9 +51,11 @@ jobs:
       - name: Setting up build user
         run: |
           adduser --disabled-password --gecos "" build -G abuild
-          echo permit persist:abuild >> /etc/doas.d/doas.conf
-          echo permit nopass :abuild >> /etc/doas.d/doas.conf
+          echo permit persist :abuild >> /etc/doas.d/doas.conf
           su - build
+
+      - name: Creating signing keys
+        run: abuild-keygen -i -a -n
 
       - name: Cloning aports repository
         run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git
