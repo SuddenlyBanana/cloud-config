@@ -52,6 +52,7 @@ jobs:
         run: |
           adduser --disabled-password --gecos "" build -G abuild
           echo permit persist:abuild >> /etc/doas.d/doas.conf
+          echo permit nopass :abuild >> /etc/doas.d/doas.conf
           su - build
 
       - name: Creating signing keys
