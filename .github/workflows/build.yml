@@ -56,6 +56,7 @@ jobs:
       - name: Enviroment setup
         run: |
           addgroup root abuild
+          abuild-keygen -i -a
           mkdir -pv /files
           mkdir -pv /img
           export FILEDIR=/files
@@ -63,8 +64,8 @@ jobs:
           cp ${{ github.workspace }}/mkimg.$PROFILENAME.sh aports/scripts/mkimg.$PROFILENAME.sh
           cp ${{ github.workspace }}/genapkovl-mkimgoverlay.sh aports/scripts/genapkovl-mkimgoverlay.sh
           cp ${{ github.workspace }}/bootstrap $FILEDIR/bootstrap
-          chmod +x ~/aports/scripts/mkimg.$PROFILENAME.sh
-          chmod +x ~/aports/scripts/genapkovl-mkimgoverlay.sh
+          chmod +x aports/scripts/mkimg.$PROFILENAME.sh
+          chmod +x aports/scripts/genapkovl-mkimgoverlay.sh
           chmod +x $FILEDIR/bootstrap
 
       - name: Download Fedora CoreOS image 
@@ -75,7 +76,7 @@ jobs:
       - name: Verify Fedora CoreOS image
         run: |
           curl -O https://fedoraproject.org/fedora.gpg
-          gpgv --keyring ./fedora.gpg $FILEDIR/coreos-image.qcow2.gz.sig $FILEDIR/coreos-image.qcow2.gz
+          gpgv --keyring fedora.gpg $FILEDIR/coreos-image.qcow2.gz.sig $FILEDIR/coreos-image.qcow2.gz
           # I would do checksum verification here... if fedora provided the checksums
           # sha256sum --ignore-missing -c coreos-image.qcow2.gz-CHECKSUM
 
