@@ -42,13 +42,13 @@ jobs:
       image: alpine:3.21
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-      
       - name: Installing prerequsites
         run: |
           su root
           apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi podman 
+
+      - name: Clone repo
+        run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git
 
       - name: Cloning aports repository
         run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git
@@ -61,9 +61,9 @@ jobs:
           mkdir -pv /img
           export FILEDIR=/files
           export PROFILENAME=reprovision
-          cp ${{ github.workspace }}/mkimg.$PROFILENAME.sh aports/scripts/mkimg.$PROFILENAME.sh
-          cp ${{ github.workspace }}/genapkovl-mkimgoverlay.sh aports/scripts/genapkovl-mkimgoverlay.sh
-          cp ${{ github.workspace }}/bootstrap $FILEDIR/bootstrap
+          cp cloud-config/mkimg.$PROFILENAME.sh aports/scripts/mkimg.$PROFILENAME.sh
+          cp cloud-config/genapkovl-mkimgoverlay.sh aports/scripts/genapkovl-mkimgoverlay.sh
+          cp cloud-config/bootstrap $FILEDIR/bootstrap
           chmod +x aports/scripts/mkimg.$PROFILENAME.sh
           chmod +x aports/scripts/genapkovl-mkimgoverlay.sh
           chmod +x $FILEDIR/bootstrap
