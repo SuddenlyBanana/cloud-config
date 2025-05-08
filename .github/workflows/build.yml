@@ -48,9 +48,6 @@ jobs:
       - name: Installing prerequsites
         run: apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi podman 
 
-      - name: Creating signing keys
-        run: abuild-keygen -i -a -n
-
       - name: Cloning aports repository
         run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git
 
