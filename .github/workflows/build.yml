@@ -45,7 +45,7 @@ jobs:
       - name: Installing prerequsites
         run: |
           su root
-          apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi podman curl
+          apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi curl gnupg podman
 
       - name: Clone repo
         run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git
