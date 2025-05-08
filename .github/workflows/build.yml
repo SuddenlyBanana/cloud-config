@@ -56,7 +56,7 @@ jobs:
       - name: Enviroment setup
         run: |
           addgroup root abuild
-          abuild-keygen -i -a
+          abuild-keygen -ian
           mkdir -pv /files
           mkdir -pv /img
           export FILEDIR=/files
