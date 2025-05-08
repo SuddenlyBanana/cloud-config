@@ -46,15 +46,7 @@ jobs:
         uses: actions/checkout@v4
       
       - name: Installing prerequsites
-        run: apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi podman
-      
-      - name: Setting up build user
-        run: |
-          adduser -g "" -G abuild -D build
-          echo 'permit nopass :abuild' > /etc/doas.d/build.conf
-          chmod 755 /etc/doas.d/build.conf
-          su - build
-          doas apk update
+        run: apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi podman 
 
       - name: Creating signing keys
         run: abuild-keygen -i -a -n
@@ -64,6 +56,7 @@ jobs:
 
       - name: Enviroment setup
         run: |
+          addgroup $(whoami) abuild
           mkdir -pv ~/tmp
           mkdir -p ~/img
           export TMPDIR=~/tmp
