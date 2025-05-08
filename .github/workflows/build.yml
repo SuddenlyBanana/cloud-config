@@ -51,7 +51,8 @@ jobs:
       - name: Setting up build user
         run: |
           adduser -g "" -G abuild -D build
-          sed -i '1i permit nopass :abuild' /etc/doas.d/doas.conf
+          echo 'permit nopass :abuild' > /etc/doas.d/build.conf
+          chmod 755 /etc/doas.d/build.conf
           su - build
           doas apk update
 
