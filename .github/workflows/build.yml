@@ -96,18 +96,6 @@ jobs:
           name: ignition-config.zip
           path: ${{ env.BUILD_DIR }}
 
-      - name: Debug
-        run: |
-          ls -al / >> ${{ env.BUILD_DIR }}/img/debug.log
-          ls -al ${{ env.BUILD_DIR }} >> ${{ env.BUILD_DIR }}/img/debug.log
-          
-      - name: Debug
-        uses: actions/upload-artifact@v4
-        with:
-          name: debug.zip
-          path: ${{ env.BUILD_DIR }}/img
-          if-no-files-found: error
-
       - name: Unzip artifact
         run: unzip -o ${{ env.BUILD_DIR }}/ignition-config.zip
 
