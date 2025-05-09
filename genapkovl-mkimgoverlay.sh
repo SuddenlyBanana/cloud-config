@@ -50,12 +50,12 @@ EOF
 rc_add podman boot
 rc_add bootstrap boot
 
-mv $BUILDDIR/bootstrap "$tmp"/usr/local/bin/bootstrap
+mv $BUILD_DIR/bootstrap "$tmp"/usr/local/bin/bootstrap
 
-mv $BUILDDIR/coreos-image.qcow2.gz "$tmp"/reprovision
-mv $BUILDDIR/coreos-image.qcow2.gz.sig "$tmp"/reprovision
-mv $BUILDDIR/coreos-installer.tar  "$tmp"/reprovision
-mv $BUILDDIR/ucore-ignition.ign  "$tmp"/reprovision
+mv $BUILD_DIR/coreos-image.qcow2.gz "$tmp"/reprovision
+mv $BUILD_DIR/coreos-image.qcow2.gz.sig "$tmp"/reprovision
+mv $BUILD_DIR/coreos-installer.tar  "$tmp"/reprovision
+mv $BUILD_DIR/ucore-ignition.ign  "$tmp"/reprovision
 chmod -R 777 "$tmp"/reprovision
 
 tar -c -C "$tmp" etc | gzip -9n > $HOSTNAME.apkovl.tar.gz
