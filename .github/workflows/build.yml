@@ -47,6 +47,7 @@ jobs:
           su root
           apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi curl gnupg podman
 
+
       - name: Clone repo
         run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git
 
@@ -80,7 +81,7 @@ jobs:
           # sha256sum --ignore-missing -c coreos-image.qcow2.gz-CHECKSUM
 
       - name: Downloading coreos-installer image
-        run: podman save --output $FILEDIR/coreos-installer.tar quay.io/coreos/coreos-installer:release
+        run: doas podman save --output $FILEDIR/coreos-installer.tar quay.io/coreos/coreos-installer:release
 
       - name: Download ignition config
         uses: actions/download-artifact@v4
