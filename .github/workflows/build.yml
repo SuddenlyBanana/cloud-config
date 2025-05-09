@@ -94,7 +94,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ignition-config.zip
-          path: ${{ env.BUILD_DIR }}/ignition-config.zip
+          path: ${{ env.BUILD_DIR }}
 
       - name: Debug
         run: |
