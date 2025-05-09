@@ -12,6 +12,8 @@ permissions:
 
 env:
   COREOS_IMAGE_VERSION: 41.20250331.3.0
+  BUILD_DIR: /build
+  PROFILENAME: reprovision
 
 jobs:
   build-config:
@@ -52,61 +54,62 @@ jobs:
         run: |
           echo "permit nopass :wheel" >> /etc/doas.conf
           addgroup root abuild
-          export BUILDDIR=/build
-          mkdir -pv $BUILDDIR
-          mkdir -pv $BUILDDIR/img
-          export PROFILENAME=reprovision
+          mkdir -pv ${{ env.BUILD_DIR }}
+          mkdir -pv ${{ env.BUILD_DIR }}/img
 
       - name: Clone repo
-        run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git $BUILDDIR/cloud-config
+        run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git ${{ env.BUILD_DIR }}/cloud-config
 
       - name: Cloning aports repository
-        run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git $BUILDDIR/aports
+        run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
 
       - name: Install scripts
         run: |
-          cp $BUILDDIR/cloud-config/mkimg.$PROFILENAME.sh $BUILDDIR/aports/scripts/mkimg.$PROFILENAME.sh
-          cp $BUILDDIR/cloud-config/genapkovl-mkimgoverlay.sh $BUILDDIR/aports/scripts/genapkovl-mkimgoverlay.sh
-          cp $BUILDDIR/cloud-config/bootstrap $BUILDDIR/bootstrap
-          chmod +x $BUILDDIR/aports/scripts/mkimg.$PROFILENAME.sh
-          chmod +x $BUILDDIR/aports/scripts/genapkovl-mkimgoverlay.sh
-          chmod +x $BUILDDIR/bootstrap
+          cp ${{ env.BUILD_DIR }}/cloud-config/mkimg.${{ env.PROFILENAME }}.sh ${{ env.BUILD_DIR }}/aports/scripts/mkimg.${{ env.PROFILENAME }}.sh
+          cp ${{ env.BUILD_DIR }}/cloud-config/genapkovl-mkimgoverlay.sh ${{ env.BUILD_DIR }}/aports/scripts/genapkovl-mkimgoverlay.sh
+          cp ${{ env.BUILD_DIR }}/cloud-config/bootstrap ${{ env.BUILD_DIR }}/bootstrap
+          chmod +x ${{ env.BUILD_DIR }}/aports/scripts/mkimg.${{ env.PROFILENAME }}.sh
+          chmod +x ${{ env.BUILD_DIR }}/aports/scripts/genapkovl-mkimgoverlay.sh
+          chmod +x ${{ env.BUILD_DIR }}/bootstrap
 
       - name: Download Fedora CoreOS image
         run: |
-          curl --output $BUILDDIR/coreos-image.qcow2.gz "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${{ env.COREOS_IMAGE_VERSION }}/x86_64/fedora-coreos-${{ env.COREOS_IMAGE_VERSION }}-digitalocean.x86_64.qcow2.gz"
-          curl --output $BUILDDIR/coreos-image.qcow2.gz.sig "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${{ env.COREOS_IMAGE_VERSION }}/x86_64/fedora-coreos-${{ env.COREOS_IMAGE_VERSION }}-digitalocean.x86_64.qcow2.gz.sig"
+          curl --output ${{ env.BUILD_DIR }}/coreos-image.qcow2.gz "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${{ env.COREOS_IMAGE_VERSION }}/x86_64/fedora-coreos-${{ env.COREOS_IMAGE_VERSION }}-digitalocean.x86_64.qcow2.gz"
+          curl --output ${{ env.BUILD_DIR }}/coreos-image.qcow2.gz.sig "https://builds.coreos.fedoraproject.org/prod/streams/stable/builds/${{ env.COREOS_IMAGE_VERSION }}/x86_64/fedora-coreos-${{ env.COREOS_IMAGE_VERSION }}-digitalocean.x86_64.qcow2.gz.sig"
       
       - name: Verify Fedora CoreOS image
         run: |
-          curl --output $BUILDDIR/fedora.gpg https://fedoraproject.org/fedora.gpg
-          gpgv --keyring $BUILDDIR/fedora.gpg $BUILDDIR/coreos-image.qcow2.gz.sig $BUILDDIR/coreos-image.qcow2.gz
+          curl --output ${{ env.BUILD_DIR }}/fedora.gpg https://fedoraproject.org/fedora.gpg
+          gpgv --keyring ${{ env.BUILD_DIR }}/fedora.gpg ${{ env.BUILD_DIR }}/coreos-image.qcow2.gz.sig ${{ env.BUILD_DIR }}/coreos-image.qcow2.gz
           # I would do checksum verification here... if fedora provided the checksums
           # sha256sum --ignore-missing -c coreos-image.qcow2.gz-CHECKSUM
 
       - name: Downloading coreos-installer image
         run: |
           podman pull quay.io/coreos/coreos-installer:release
-          podman save --output $BUILDDIR/coreos-installer.tar quay.io/coreos/coreos-installer:release
+          podman save --output ${{ env.BUILD_DIR }}/coreos-installer.tar quay.io/coreos/coreos-installer:release
 
       - name: Download ignition config
         uses: actions/download-artifact@v4
         with:
           name: ignition-config.zip
-          path: $BUILDDIR/ignition-config.zip
+          path: ${{ env.BUILD_DIR }}/ignition-config.zip
 
       - name: Unzip artifact
-        run: unzip -o $BUILDDIR/ignition-config.zip
+        run: unzip -o ${{ env.BUILD_DIR }}/ignition-config.zip
 
       - name: Create signing keys
         run: abuild-keygen -ian
 
       - name: Build custom alpine image
-        run: sh $BUILDDIR/aports/scripts/mkimage.sh --tag v3.21 --outdir $BUILDDIR/img --arch x86_64 --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/main/ --profile $PROFILENAME
+        run: |
+          export BUILDDIR=${{ env.BUILD_DIR }}
+          export PROFILENAME=${{ env.PROFILENAME }}
+          sh ${{ env.BUILD_DIR }}/aports/scripts/mkimage.sh --tag v3.21 --outdir ${{ env.BUILD_DIR }}/img --arch x86_64 --repository https://dl-cdn.alpinelinux.org/alpine/v3.21/main/ --profile ${{ env.PROFILENAME }}
           
       - name: Upload custom alpine image
         uses: actions/upload-artifact@v4
         with:
           name: alpine-reprovision.zip
-          path: $BUILDDIR/img
+          path: ${{ env.BUILD_DIR }}/img
           if-no-files-found: error
