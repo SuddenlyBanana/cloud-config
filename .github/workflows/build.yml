@@ -40,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: alpine:3.21
+      options: --privileged
 
     steps:
       - name: Installing prerequsites
@@ -81,7 +82,7 @@ jobs:
           # sha256sum --ignore-missing -c coreos-image.qcow2.gz-CHECKSUM
 
       - name: Downloading coreos-installer image
-        run: doas podman save --output $FILEDIR/coreos-installer.tar quay.io/coreos/coreos-installer:release
+        run: podman save --output $FILEDIR/coreos-installer.tar quay.io/coreos/coreos-installer:release
 
       - name: Download ignition config
         uses: actions/download-artifact@v4
