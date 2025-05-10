@@ -1,7 +1,10 @@
 #!/bin/sh
 # hope for the best
 
-apk add podman
+su root
+
+# Sleep phonk
+sleep 10s
 
 podman load /reprovision/coreos-installer.tar
 

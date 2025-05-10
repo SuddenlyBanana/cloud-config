@@ -27,11 +27,11 @@ rc_add() {
 tmp="$(mktemp -d)"
 trap cleanup EXIT
 
-mkdir -p "$tmp"/etc/apk
-makefile root:root 0644 "$tmp"/etc/apk/world <<EOF
-alpine-base
-podman
-EOF
+# mkdir -p "$tmp"/etc/apk
+# makefile root:root 0644 "$tmp"/etc/apk/world <<EOF
+# alpine-base
+# podman
+# EOF
 
 makefile root:root 0755 "$tmp"/etc/init.d/bootstrap <<EOF
 #!/sbin/openrc-run
@@ -47,8 +47,7 @@ command_background=true
 pidfile="/run/${RC_SVCNAME}.pid"
 EOF
 
-rc_add podman boot
-rc_add bootstrap boot
+rc_add bootstrap default
 
 mv $BUILD_DIR/bootstrap "$tmp"/usr/local/bin/bootstrap
 

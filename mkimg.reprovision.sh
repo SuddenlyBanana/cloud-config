@@ -1,7 +1,8 @@
 profile_reprovision() {
-        profile_standard
+        profile_base
         image_ext="tar.gz"
-        output_format="rootfs"
+        arch="x86_64"
+        output_format="targz"
+        apks="$apks podman"
         apkovl="aports/scripts/genapkovl-mkimgoverlay.sh"
-        apks="\$apks podman"
 }
