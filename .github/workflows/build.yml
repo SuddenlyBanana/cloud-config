@@ -99,11 +99,16 @@ jobs:
       - name: Create signing keys
         run: abuild-keygen -ian
 
+      - name: Specifying repositories to use for mkimage
+        run: |
+          echo "https://dl-cdn.alpinelinux.org/alpine/${{ env.ALPINE_VERSION }}/main/" >> ${{ env.BUILD_DIR }}/repofile
+          echo "https://dl-cdn.alpinelinux.org/alpine/${{ env.ALPINE_VERSION }}/community/" >> ${{ env.BUILD_DIR }}/repofile
+
       - name: Build custom alpine image
         run: |
           export BUILD_DIR=${{ env.BUILD_DIR }}
           export PROFILENAME=${{ env.PROFILENAME }}
-          ${{ env.BUILD_DIR }}/aports/scripts/mkimage.sh --tag ${{ env.ALPINE_VERSION }} --outdir ${{ env.BUILD_DIR }}/img --arch x86_64 --repository https://dl-cdn.alpinelinux.org/alpine/${{ env.ALPINE_VERSION }}/main/ --profile ${{ env.PROFILENAME }}
+          ${{ env.BUILD_DIR }}/aports/scripts/mkimage.sh --tag ${{ env.ALPINE_VERSION }} --outdir ${{ env.BUILD_DIR }}/img --arch x86_64 --repositories-file ${{ env.BUILD_DIR }}/repofile --profile ${{ env.PROFILENAME }}
           
       - name: Upload custom alpine image
         uses: actions/upload-artifact@v4
