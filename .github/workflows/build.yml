@@ -73,6 +73,7 @@ jobs:
           chmod +x ${{ env.BUILD_DIR }}/aports/scripts/mkimg.${{ env.PROFILENAME }}.sh
           chmod +x ${{ env.BUILD_DIR }}/aports/scripts/genapkovl-mkimgoverlay.sh
           chmod +x ${{ env.BUILD_DIR }}/bootstrap
+          ln -sf ${{ env.BUILD_DIR }}/aports/scripts/genapkovl-mkimgoverlay.sh ~/
 
       - name: Download Fedora CoreOS image
         run: |
