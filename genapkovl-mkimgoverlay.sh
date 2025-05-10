@@ -60,4 +60,4 @@ mv $BUILD_DIR/coreos-installer.tar  "$tmp"/reprovision
 mv $BUILD_DIR/ucore-ignition.ign  "$tmp"/reprovision
 chmod -R 777 "$tmp"/reprovision
 
-tar -c -C "$tmp" etc | gzip -9n > $HOSTNAME.apkovl.tar.gz
+tar -c -C "$tmp" | gzip -9n > $HOSTNAME.apkovl.tar.gz
