@@ -62,7 +62,8 @@ jobs:
         run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git ${{ env.BUILD_DIR }}/cloud-config
 
       - name: Cloning aports repository
-        run: git clone --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
+        run: |
+          git clone --single-branch --branch ${env.ALPINE_VERSION[^v]} --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
 
       - name: Install scripts
         run: |

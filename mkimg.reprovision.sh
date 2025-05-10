@@ -4,5 +4,5 @@ profile_reprovision() {
         arch="x86_64"
         output_format="targz"
         apks="$apks podman"
-        apkovl="aports/scripts/genapkovl-mkimgoverlay.sh"
+        apkovl="$BUILD_DIR/aports/scripts/genapkovl-mkimgoverlay.sh"
 }
