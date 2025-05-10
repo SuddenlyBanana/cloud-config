@@ -12,7 +12,7 @@ permissions:
 
 env:
   COREOS_IMAGE_VERSION: 41.20250331.3.0
-  ALPINE_VERSION: v3.21
+  ALPINE_VERSION: 3.21
   BUILD_DIR: /build
   PROFILENAME: reprovision
 
@@ -63,7 +63,7 @@ jobs:
 
       - name: Cloning aports repository
         run: |
-          git clone --single-branch --branch ${env.ALPINE_VERSION[^v]} --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
+          git clone --single-branch --branch ${{ env.ALPINE_VERSION }}-stable --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
 
       - name: Install scripts
         run: |
@@ -104,8 +104,8 @@ jobs:
         run: |
           export BUILD_DIR=${{ env.BUILD_DIR }}
           export PROFILENAME=${{ env.PROFILENAME }}
-          ${{ env.BUILD_DIR }}/aports/scripts/mkimage.sh --outdir ${{ env.BUILD_DIR }}/img --tag ${{ env.ALPINE_VERSION }} --arch x86_64 --profile ${{ env.PROFILENAME }} \
-           --repository https://dl-cdn.alpinelinux.org/alpine/${{ env.ALPINE_VERSION }}/main --repository https://dl-cdn.alpinelinux.org/alpine/${{ env.ALPINE_VERSION }}/community
+          ${{ env.BUILD_DIR }}/aports/scripts/mkimage.sh --outdir ${{ env.BUILD_DIR }}/img --tag v${{ env.ALPINE_VERSION }} --arch x86_64 --profile ${{ env.PROFILENAME }} \
+           --repository https://dl-cdn.alpinelinux.org/alpine/v${{ env.ALPINE_VERSION }}/main --repository https://dl-cdn.alpinelinux.org/alpine/v${{ env.ALPINE_VERSION }}/community
           
       - name: Upload custom alpine image
         uses: actions/upload-artifact@v4
