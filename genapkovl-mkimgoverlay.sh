@@ -33,6 +33,7 @@ trap cleanup EXIT
 # podman
 # EOF
 
+mkdir -pv "$tmp"/etc/init.d
 makefile root:root 0755 "$tmp"/etc/init.d/bootstrap <<EOF
 #!/sbin/openrc-run
 
@@ -49,8 +50,10 @@ EOF
 
 rc_add bootstrap default
 
+mkdir -pv "$tmp"/usr/local/bin/bootstrap
 mv $BUILD_DIR/bootstrap "$tmp"/usr/local/bin/bootstrap
 
+mkdir -pv "$tmp"/reprovision
 mv $BUILD_DIR/coreos-image.qcow2.gz "$tmp"/reprovision
 mv $BUILD_DIR/coreos-image.qcow2.gz.sig "$tmp"/reprovision
 mv $BUILD_DIR/coreos-installer.tar  "$tmp"/reprovision

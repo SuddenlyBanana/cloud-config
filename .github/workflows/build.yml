@@ -1,5 +1,5 @@
 name: reprovision-img-build
-run-name: "Build custom reprovision image"
+run-name: "Build reprovision image"
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
       options: --privileged
 
     steps:
-      - name: Installing prerequsites
+      - name: Install prerequsites
         run: |
           su root
           apk add alpine-sdk alpine-conf syslinux xorriso squashfs-tools grub grub-efi doas mtools dosfstools grub-efi curl gnupg podman fuse-overlayfs unzip
@@ -61,7 +61,7 @@ jobs:
       - name: Clone repo
         run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git ${{ env.BUILD_DIR }}/cloud-config
 
-      - name: Cloning aports repository
+      - name: Clone aports repository
         run: |
           git clone --single-branch --branch ${{ env.ALPINE_VERSION }}-stable --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
 
@@ -87,7 +87,7 @@ jobs:
           # I would do checksum verification here... if fedora provided the checksums
           # sha256sum --ignore-missing -c coreos-image.qcow2.gz-CHECKSUM
 
-      - name: Downloading coreos-installer image
+      - name: Download coreos-installer image
         run: |
           podman pull quay.io/coreos/coreos-installer:release
           podman save --output ${{ env.BUILD_DIR }}/coreos-installer.tar quay.io/coreos/coreos-installer:release
