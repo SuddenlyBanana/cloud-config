@@ -27,20 +27,20 @@ rc_add() {
 tmp="$(mktemp -d)"
 trap cleanup EXIT
 
+overlay="$tmp"/overlay
+mkdir -pv "$overlay"
+
 # mkdir -p "$tmp"/etc/apk
 # makefile root:root 0644 "$tmp"/etc/apk/world <<EOF
 # alpine-base
 # podman
 # EOF
 
-mkdir -pv "$tmp"/etc/init.d
-makefile root:root 0755 "$tmp"/etc/init.d/bootstrap <<EOF
+mkdir -pv "$overlay"/etc/init.d
+makefile root:root 0755 "$overlay"/etc/init.d/bootstrap <<EOF
 #!/sbin/openrc-run
 
-# SPDX-FileCopyrightText: Copyright 2022-2023, macmpi
-# SPDX-License-Identifier: MIT
-
-description="boostrappring script"
+description="bootstrapping script"
 name="bootstrap"
 
 command="/usr/local/bin/bootstrap"
@@ -50,14 +50,14 @@ EOF
 
 rc_add bootstrap default
 
-mkdir -pv "$tmp"/usr/local/bin/bootstrap
-mv $BUILD_DIR/bootstrap "$tmp"/usr/local/bin/bootstrap
+mkdir -pv "$overlay"/usr/local/bin
+mv $BUILD_DIR/bootstrap "$overlay"/usr/local/bin
 
-mkdir -pv "$tmp"/reprovision
-mv $BUILD_DIR/coreos-image.qcow2.gz "$tmp"/reprovision
-mv $BUILD_DIR/coreos-image.qcow2.gz.sig "$tmp"/reprovision
-mv $BUILD_DIR/coreos-installer.tar  "$tmp"/reprovision
-mv $BUILD_DIR/ucore-ignition.ign  "$tmp"/reprovision
-chmod -R 777 "$tmp"/reprovision
+mkdir -pv "$overlay"/reprovision
+mv $BUILD_DIR/coreos-image.qcow2.gz "$overlay"/reprovision
+mv $BUILD_DIR/coreos-image.qcow2.gz.sig "$overlay"/reprovision
+mv $BUILD_DIR/coreos-installer.tar  "$overlay"/reprovision
+mv $BUILD_DIR/ucore-ignition.ign  "$overlay"/reprovision
+chmod -R 777 "$overlay"/reprovision
 
-tar -c "$tmp" | gzip -9n > $HOSTNAME.apkovl.tar.gz
+tar cv -C "$overlay" --no-recursion $( find "$overlay" | sed "s|"$overlay"/||" | sort | xargs ) | gzip -9n > $HOSTNAME.apkovl.tar.gz
