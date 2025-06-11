@@ -9,8 +9,7 @@
     let
       pkgsLinux = import nixpkgs { system = "x86_64-linux"; };
       pkgsDarwin = import nixpkgs { system = "x86_64-darwin"; };
-    in
-    {
+    in {
       packages.x86_64-linux.do = nixos-generators.nixosGenerate {
         system = "x86_64-linux";
         modules = [ ];
@@ -18,20 +17,27 @@
       };
 
       # nix develop
-      devShells."x86_64-darwin".default = pkgsDarwin.mkShell {
-        buildInputs = [
-          colmena
-        ];
-      };
+      devShells."x86_64-darwin".default =
+        pkgsDarwin.mkShell { buildInputs = with pkgsDarwin; [ colmena ]; };
 
       colmenaHive = colmena.lib.makeHive {
         meta = {
-          nixpkgs = pkgsLinux;
+          nixpkgs = import nixpkgs {
+            system = "x86_64-linux";
+            overlays = [ ];
+          };
         };
 
-        defaults = import ./nixos/common;
+        #defaults = import ./nixos/common;
 
-        alpha = import ./nixos/hosts/gameonthatthang;
+        alpha = {
+          imports = [ ./nixos/common ./nixos/hosts/gameonthatthang ];
+
+          deployment = {
+            buildOnTarget = true;
+            targetHost = "134.122.91.58";
+          };
+        };
       };
     };
 }

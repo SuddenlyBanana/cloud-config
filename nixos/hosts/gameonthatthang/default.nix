@@ -1,13 +1,9 @@
-{ ... }:
+{ modulesPath, lib, ... }:
 
 {
-  imports = [
-    ./configuration.nix
-  ];
+  imports =
+    lib.optional (builtins.pathExists ./do-userdata.nix) ./do-userdata.nix
+    ++ [ (modulesPath + "/virtualisation/digital-ocean-config.nix") ];
 
-  deployment = {
-    buildOnTarget = true;
-    targetHost = "gameonthatthang.online";
-    targetUser = "admin";
-  };
+  time.timeZone = "Europe/Berlin";
 }
