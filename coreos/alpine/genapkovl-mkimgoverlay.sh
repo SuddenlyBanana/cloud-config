@@ -60,4 +60,4 @@ mv $BUILD_DIR/coreos-installer.tar  "$overlay"/reprovision
 mv $BUILD_DIR/ucore-ignition.ign  "$overlay"/reprovision
 chmod -R 777 "$overlay"/reprovision
 
-tar cv -C "$overlay" --no-recursion $( find "$overlay" | sed "s|"$overlay"/||" | sort | xargs ) | gzip -9n > $HOSTNAME.apkovl.tar.gz
+tar -cvC "$overlay" --no-recursion $( find "$overlay" | sed "s|"$overlay"/||" | sort | xargs ) | gzip -9n > $HOSTNAME.apkovl.tar.gz

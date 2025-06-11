@@ -1,10 +1,10 @@
-name: reprovision-img-build
-run-name: "Build reprovision image"
+name: build-alpine
+run-name: "Build CoreOS installer"
 
 on:
   push:
-    branches:
-      - main
+    paths:
+      - "coreos/**"
 
 permissions:
   actions: write
@@ -62,8 +62,7 @@ jobs:
         run: git clone --depth=1 https://github.com/SuddenlyBanana/cloud-config.git ${{ env.BUILD_DIR }}/cloud-config
 
       - name: Clone aports repository
-        run: |
-          git clone --single-branch --branch ${{ env.ALPINE_VERSION }}-stable --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
+        run: git clone --single-branch --branch ${{ env.ALPINE_VERSION }}-stable --depth=1 https://gitlab.alpinelinux.org/alpine/aports.git ${{ env.BUILD_DIR }}/aports
 
       - name: Install scripts
         run: |
@@ -84,8 +83,6 @@ jobs:
         run: |
           curl --output ${{ env.BUILD_DIR }}/fedora.gpg https://fedoraproject.org/fedora.gpg
           gpgv --keyring ${{ env.BUILD_DIR }}/fedora.gpg ${{ env.BUILD_DIR }}/coreos-image.qcow2.gz.sig ${{ env.BUILD_DIR }}/coreos-image.qcow2.gz
-          # I would do checksum verification here... if fedora provided the checksums
-          # sha256sum --ignore-missing -c coreos-image.qcow2.gz-CHECKSUM
 
       - name: Download coreos-installer image
         run: |
@@ -114,3 +111,5 @@ jobs:
           name: alpine-reprovision.zip
           path: ${{ env.BUILD_DIR }}/img
           if-no-files-found: error
+
+    

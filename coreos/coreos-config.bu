@@ -8,36 +8,33 @@ storage:
         - label: root
           number: 4
           # Allocate at least 8 GiB to the rootfs.
-          size_mib: 8192
-          resize: false
-
-        - label: reprovision
-          number: 5
-          size_mib: 2048
-          resize: false
+          size_mib: 20480
+          wipe_partition_entry: true
+          resize: true
 
         - label: log
+          number: 5
+          size_mib: 2048
+          resize: true
+
+        - label: reprovision
           number: 6
           size_mib: 4096
-          resize: false
+          resize: true
 
         - label: srv
           number: 7
           size_mib: 0
+          start_mib: 0
           resize: true
   filesystems:
-    - device: /dev/disk/by-partlabel/root
-      format: xfs
-      wipe_filesystem: true
-      label: root
-
     - device: /dev/disk/by-partlabel/reprovision
       format: ext4
-      path: /var/reprovision
+      path: /var/srv/reprovision
       with_mount_unit: true
 
     - device: /dev/disk/by-partlabel/log
-      format: xfs
+      format: ext4
       path: /var/log
       with_mount_unit: true
 
@@ -51,6 +48,24 @@ storage:
 systemd:
   units:
     # Rebasing to Ublue uCore
+    - name: ucore-unsigned-autorebase.service
+      enabled: true
+      contents: |
+        [Unit]
+        Description=uCore autorebase to unsigned OCI and reboot
+        ConditionPathExists=!/etc/ucore-autorebase/unverified
+        ConditionPathExists=!/etc/ucore-autorebase/signed
+        After=network-online.target
+        Wants=network-online.target
+        [Service]
+        Type=oneshot
+        StandardOutput=journal+console
+        ExecStart=/usr/bin/rpm-ostree rebase --bypass-driver ostree-unverified-registry:ghcr.io/ublue-os/ucore:stable
+        ExecStart=/usr/bin/touch /etc/ucore-autorebase/unverified
+        ExecStart=/usr/bin/systemctl disable ucore-unsigned-autorebase.service
+        ExecStart=/usr/bin/systemctl reboot
+        [Install]
+        WantedBy=multi-user.target
     - name: ucore-signed-autorebase.service
       enabled: true
       contents: |
@@ -69,14 +84,16 @@ systemd:
         ExecStart=/usr/bin/systemctl reboot
         [Install]
         WantedBy=multi-user.target
+
 passwd:
   users:
     - name: core
+      password_hash: $y$j9T$CnOTMLorqOJnw//dnpUQm/$X5E7HuLvzPwNnqnjTJ/YVr73kDrke4DRxxnGkmMSvd4
       ssh_authorized_keys:
         - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICRIhWo+MoCKC9ON917x42Go2kj3HAe15HOq1aRx2MsO niko@bazzite
 
     - name: reprovision
       ssh_authorized_keys:
+        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJLmAB2PsuB5rgKsS61zKO65k7bMAsv6nIMRdeVobUzV github-actions
         - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICRIhWo+MoCKC9ON917x42Go2kj3HAe15HOq1aRx2MsO niko@bazzite
-      home_dir: /var/reprovision
-      no_create_home: true
+      home_dir: /var/srv/reprovision
