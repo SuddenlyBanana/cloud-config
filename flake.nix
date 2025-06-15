@@ -1,43 +1,48 @@
 {
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=25.05";
     colmena.url = "github:zhaofengli/colmena";
     nixos-generators.url = "github:nix-community/nixos-generators";
   };
 
-  outputs = { self, nixpkgs, colmena, nixos-generators, ... }:
+  outputs = { nixpkgs, colmena, nixos-generators, ... }:
     let
-      pkgsLinux = import nixpkgs { system = "x86_64-linux"; };
-      pkgsDarwin = import nixpkgs { system = "x86_64-darwin"; };
+      systemLinux = "x86_64-linux";
+      systemDarwin = "x86_64-darwin";
+      pkgsLinux = import nixpkgs { system = systemLinux; };
+      pkgsDarwin = import nixpkgs { system = systemDarwin; };
     in {
       packages.x86_64-linux.do = nixos-generators.nixosGenerate {
-        system = "x86_64-linux";
+        system = systemLinux;
         modules = [ ];
         format = "do";
       };
 
       # nix develop
-      devShells."x86_64-darwin".default =
-        pkgsDarwin.mkShell { buildInputs = with pkgsDarwin; [ colmena ]; };
+      devShells.${systemDarwin}.default = pkgsDarwin.mkShell {
+        nativeBuildInputs = [ colmena.defaultPackage.${systemDarwin} ];
+      };
+
+      devShells.${systemLinux}.default = pkgsLinux.mkShell {
+        nativeBuildInputs = [ colmena.defaultPackage.${systemLinux} ];
+      };
 
       colmenaHive = colmena.lib.makeHive {
-        meta = {
-          nixpkgs = import nixpkgs {
-            system = "x86_64-linux";
-            overlays = [ ];
-          };
+        meta = { nixpkgs = pkgsLinux; };
+
+        defaults = {
+          imports = [ ./nixos/common ];
+
+          deployment.buildOnTarget = true;
         };
 
-        #defaults = import ./nixos/common;
-
         alpha = {
-          imports = [ ./nixos/common ./nixos/hosts/gameonthatthang ];
+          imports = [ ./nixos/hosts/gameonthatthang ];
 
-          deployment = {
-            buildOnTarget = true;
-            targetHost = "134.122.91.58";
-          };
+          deployment.targetHost = "134.122.91.58";
         };
       };
     };
+
 }
