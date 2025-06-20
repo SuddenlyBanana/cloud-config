@@ -8,39 +8,24 @@ storage:
         - label: root
           number: 4
           # Allocate at least 8 GiB to the rootfs.
-          size_mib: 20480
+          size_mib: 8196
           wipe_partition_entry: true
           resize: true
 
-        - label: log
+        - label: var
           number: 5
-          size_mib: 2048
-          resize: true
-
-        - label: reprovision
-          number: 6
-          size_mib: 4096
-          resize: true
-
-        - label: srv
-          number: 7
           size_mib: 0
           start_mib: 0
           resize: true
   filesystems:
-    - device: /dev/disk/by-partlabel/reprovision
-      format: ext4
-      path: /var/srv/reprovision
-      with_mount_unit: true
-
-    - device: /dev/disk/by-partlabel/log
-      format: ext4
-      path: /var/log
-      with_mount_unit: true
+    - device: /dev/disk/by-partlabel/root
+      label: root
+      format: btrfs
+      wipe_filesystem: true
 
     - device: /dev/disk/by-partlabel/srv
-      format: xfs
-      path: /var/srv
+      format: btrfs
+      path: /var
       with_mount_unit: true
   directories:
     - path: /etc/ucore-autorebase
@@ -91,9 +76,4 @@ passwd:
       password_hash: $y$j9T$CnOTMLorqOJnw//dnpUQm/$X5E7HuLvzPwNnqnjTJ/YVr73kDrke4DRxxnGkmMSvd4
       ssh_authorized_keys:
         - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICRIhWo+MoCKC9ON917x42Go2kj3HAe15HOq1aRx2MsO niko@bazzite
-
-    - name: reprovision
-      ssh_authorized_keys:
-        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJLmAB2PsuB5rgKsS61zKO65k7bMAsv6nIMRdeVobUzV github-actions
-        - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICRIhWo+MoCKC9ON917x42Go2kj3HAe15HOq1aRx2MsO niko@bazzite
-      home_dir: /var/srv/reprovision
+    

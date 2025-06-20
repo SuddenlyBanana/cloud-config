@@ -21,6 +21,7 @@
       enable = true;
       defaultEditor = true;
     };
+    git.enable = true;
   };
 
   services.cockpit = {

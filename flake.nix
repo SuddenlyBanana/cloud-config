@@ -38,7 +38,7 @@
         };
 
         alpha = {
-          imports = [ ./nixos/hosts/gameonthatthang ];
+          imports = [ ./nixos/hosts/alpha ];
 
           deployment.targetHost = "134.122.91.58";
         };
